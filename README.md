@@ -1,5 +1,4 @@
 
-![MotoLOGIC Logo](https://www.motologic.com/assets/logo-d2c564e3062680706e506d3ba8171aba.png)
 
 
 # Partner Site Authentication
