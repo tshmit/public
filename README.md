@@ -4,14 +4,14 @@
 
 # Partner Site Authentication
 
-MotoLOGIC allows users of a partner site to seamlessly authenticate and navigate its Repair and Diagnostics product via a special request from the partner site.  
+MotoLOGIC allows users of a partner site to seamlessly authenticate and navigate the Repair and Diagnostics web app via a special request from the partner site.  
 
-At a high level, it is a HTTPS request that includes a few special params that:
+At a high level, this is done via a HTTPS request that includes a few special parameters that:
 
 - Allow MotoLOGIC to authenticate the request as being from a specific trusted partner site.
 - Include basic user information for the MotoLOGIC session (e.g. to display their information on the UI, for example).
 
-A secondary function of the request is to allow the partner site to provide ACES car fields in the query string, which can then be used as a whole to navigate the user to the equivalent MotoLOGIC car.
+A secondary function of the request is to allow the partner site to provide ACES car fields in the query string, which can then be used as a whole to navigate the user to the equivalent MotoLOGIC car, optionally including a keyword search and service info type selection.
 
 Once the request is completed, the partner site user will have established a session on the MotoLOGIC site.
 
@@ -19,13 +19,13 @@ Once the request is completed, the partner site user will have established a ses
 
 The request URL takes the form:
 
-`https://www.motologic.com/aces-car?partner_site_id={partner_site_id}&token={auth_token}&keywords={keywords}&sit={sit}&ssc={ssc}&{aces-car-field_1}={value_1}&{aces-car-field_n}={value_n}`
+`https://www.motologic.com/aces-car?partner_site_id={partner_site_id}&token={auth_token}&keywords={keywords}&sit={sit}&{aces-car-field_1}={value_1}&{aces-car-field_n}={value_n}`
 
 Where:
 
 - `{keywords}` = search keywords.
 
-- `{sit}` = service information type to be selected in the MotoLOGIC UI.  Valid values are:
+- `{sit}` = service information type to be selected in the MotoLOGIC search results page UI (located on the right side).  Valid values are:
     * /sit/all
     * /sit/bulletins
     * /sit/diagnostics
@@ -35,41 +35,19 @@ Where:
     * /sit/repair
     * /sit/specifications
     * /sit/labor
+    * /sit/om  (owner's manual)
     
   These values should be URL encoded.
 
-- `{ssc}` = system, subsystem, component, to be selected in the MotoLOGIC UI.  SSCs can have values nested within the top level values.   Here is a sample of top level values:
-    * /ssc/all
-    * /ssc/general
-    * /ssc/accessories
-    * /ssc/body
-    * /ssc/brakes
-    * /ssc/chassis
-    * /ssc/drivetrain
-    * /ssc/electrical
-    * /ssc/engine
-    * /ssc/hvac
-    * /ssc/hybrid
-    * /ssc/powertrain
-    * /ssc/restraints
-    * /ssc/steering
-    * /ssc/suspension
-    * /ssc/miscellaneous
-    
-  These values should be URL encoded.
-
-  For example, to perform a request to search for “brakes” and select the “chassis>brakes” ssc and the “repair” sit:
+  For example, to perform a request to search for “brakes” and select the “repair” sit:
   
-  * The “repair” "service info type" has the path: "/sit/repair".
-
-  * The “brakes” subsystem (a child of the "chassis" system) has the path `/ssc/chassis/brakes`.
+  * The “repair” service info type has the path: `/sit/repair`.
 
   Thus, the query string, which must have its values URL encoded, would be:
 
-  `?keywords=brakes&sit=%2Fsit%2Frepair&ssc=%2Fssc%2Fchassis%2Fbrakes`
+  `?keywords=brakes&sit=%2Fsit%2Frepair`
 
-  The list of the possible sit and ssc values may change from time to time.  Please contact MotoLOGIC if you are running into problems with them.
-
+  The list of the possible sit values may change from time to time.  Please contact MotoLOGIC if you are running into problems with them.  (Last updated on June 6, 2016.)
 
 - `{aces-car-field_1}..{aces-car-field_n}` = a set of “aces labels” and respective values which are used to map an aces car to a MotoLOGIC car. MotoLOGIC cares about only a subset of all possible “aces labels”.  Also note that, with the exception of YearID, we mean aces labels, as in "ModelName", not aces IDs (e.g. "ModelID").  The list of required aces labels is outlined below, with some sample values:
 
@@ -109,19 +87,22 @@ partner_site_id={auth-partner}&token={encrypted-token}
 Where:
 
 - `{auth-partner}` = a unique identifier for the partner.  This value will be provided by MotoLOGIC.
-- `{encrypted-token}` = an encrypted token.  See "Authentication Token" section below.
+- `{encrypted-token}` = an encrypted token.  See the "Authentication Token" section below.
+
+
+Finally, the URL must use the HTTPS protocol, not HTTP.  HTTP requests will be redirected to HTTPS equivalents.
 
 ### Example
 
 GET Request URL:
 
 ```
-https://www.motologic.com/aces-car?AspirationName=Naturally%20Aspirated&BlockType=L&BodyTypeName=&CylinderHeadTypeName=DOHC&Cylinders=4&DriveTypeName=FWD&EngineDesignationName=&EngineVINName=&EngineVersion=&FuelTypeName=GAS&Liter=2.0L&MakeName=Dodge&MfrBodyCodeName=&ModelName=Neon&SubmodelName=&TransmissionControlTypeName=Automatic&TransmissionMfrCode=&TransmissionNumSpeeds=&TransmissionTypeName=&VehicleTypeName=&VersionDate=&YearID=2005&keywords=foo&sit=%2Fsit%2Frepair&ssc=%2Fssc%2Fchassis%2Fbrakes&partner_site_id=magic_garage&token=TN%2FUEzg0uaVTN17uJbHNERblHKIN8xqI117LO%2BRxNTzVHrf3JeZdL8G4xweIHKl1ALwBTvqs4SYFOjEM7Di5xPbHK0gsT9jwcZbDVdItu6sWeW8gUUyfuztNEuCpLWpVQN4fTzCj1uCVODN8DK0Srg%3D%3D
+https://www.motologic.com/aces-car?AspirationName=Naturally%20Aspirated&BlockType=L&BodyTypeName=&CylinderHeadTypeName=DOHC&Cylinders=4&DriveTypeName=FWD&EngineDesignationName=&EngineVINName=&EngineVersion=&FuelTypeName=GAS&Liter=2.0L&MakeName=Dodge&MfrBodyCodeName=&ModelName=Neon&SubmodelName=&TransmissionControlTypeName=Automatic&TransmissionMfrCode=&TransmissionNumSpeeds=&TransmissionTypeName=&VehicleTypeName=&VersionDate=&YearID=2005&keywords=foo&sit=%2Fsit%2Frepair&partner_site_id=magic_garage&token=TN%2FUEzg0uaVTN17uJbHNERblHKIN8xqI117LO%2BRxNTzVHrf3JeZdL8G4xweIHKl1ALwBTvqs4SYFOjEM7Di5xPbHK0gsT9jwcZbDVdItu6sWeW8gUUyfuztNEuCpLWpVQN4fTzCj1uCVODN8DK0Srg%3D%3D
 ```
 
 ## Authentication Token
 
-The partner site's authentication token is an encrypted token which contains a few details about the partner site user that is to navigate on to the MotoLOGIC site.
+The partner site's authentication token is an encrypted token which contains a few details about the partner site user that is to navigate the MotoLOGIC site.
 
 As a pre-requisite, both parties will have a shared key for the symmetric encryption of the token (it will be provided by MotoLOGIC as part of the setup).  Each party **must** keep this key private (e.g. it should not be hanging out on the client/browser side).  Exposing of this key by either party would result in arbitrary users having the ability to add themselves to and freely access the MotoLOGIC site!
 
